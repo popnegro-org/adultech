@@ -1,14 +1,22 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
+import { consumeRateLimit } from '../src/lib/rate-limit.mjs';
 
 const prisma = new PrismaClient();
 const suffix = randomUUID();
 let orgA;
 let orgB;
 let user;
+const rateLimitKey = `qa-rate-${suffix}`;
 
 try {
+  const rateLimitNow = new Date();
+  assert.equal(await consumeRateLimit(prisma, rateLimitKey, 2, 60_000, rateLimitNow), true);
+  assert.equal(await consumeRateLimit(prisma, rateLimitKey, 2, 60_000, rateLimitNow), true);
+  assert.equal(await consumeRateLimit(prisma, rateLimitKey, 2, 60_000, rateLimitNow), false);
+  assert.equal(await consumeRateLimit(prisma, rateLimitKey, 2, 60_000, new Date(rateLimitNow.getTime() + 60_001)), true);
+
   orgA = await prisma.organization.create({ data: { name: 'QA workspace A', slug: `qa-a-${suffix}` } });
   orgB = await prisma.organization.create({ data: { name: 'QA workspace B', slug: `qa-b-${suffix}` } });
   user = await prisma.user.create({
@@ -52,5 +60,6 @@ try {
   if (orgA?.id) await prisma.organization.deleteMany({ where: { id: orgA.id } });
   if (orgB?.id) await prisma.organization.deleteMany({ where: { id: orgB.id } });
   if (user?.id) await prisma.user.deleteMany({ where: { id: user.id } });
+  await prisma.rateLimitBucket.deleteMany({ where: { key: rateLimitKey } });
   await prisma.$disconnect();
 }
