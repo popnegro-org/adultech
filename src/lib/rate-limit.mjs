@@ -25,5 +25,23 @@ export async function consumeRateLimit(prisma, key, limit, windowMs, now = new D
       "updatedAt" = ${now}
     RETURNING "count"
   `;
+  const cleanupDueBefore = new Date(now.getTime() - 60 * 60 * 1000);
+  const cleanupLease = await prisma.$queryRaw`
+    INSERT INTO "RateLimitCleanupState" ("id", "lastRunAt")
+    VALUES ('global', ${now})
+    ON CONFLICT ("id") DO UPDATE
+    SET "lastRunAt" = EXCLUDED."lastRunAt"
+    WHERE "RateLimitCleanupState"."lastRunAt" <= ${cleanupDueBefore}
+    RETURNING "id"
+  `;
+
+  if (cleanupLease.length > 0) {
+    const retentionCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    await prisma.$executeRaw`
+      DELETE FROM "RateLimitBucket"
+      WHERE "windowStart" < ${retentionCutoff}
+    `;
+  }
+
   return Number(rows[0]?.count ?? limit + 1) <= limit;
 }
