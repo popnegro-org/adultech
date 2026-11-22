@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { createHmac, randomUUID } from 'node:crypto';
 import { hash } from 'bcryptjs';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -16,7 +16,9 @@ const registrationSchema = z.object({
 
 export async function POST(request: Request) {
   const ip = (request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown').slice(0, 64);
-  const ipKey = createHash('sha256').update(ip).digest('hex');
+  const rateLimitSecret = process.env.AUTH_SECRET;
+  if (!rateLimitSecret) return NextResponse.json({ error: 'Servicio temporalmente no disponible.' }, { status: 503 });
+  const ipKey = createHmac('sha256', rateLimitSecret).update(ip).digest('hex');
   try {
     const allowed = await consumeRateLimit(prisma, `register:${ipKey}`, 5, 15 * 60 * 1000);
     if (!allowed) {
