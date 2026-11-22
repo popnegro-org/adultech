@@ -40,7 +40,7 @@ export async function createContact(formData: FormData) {
 
 export async function updateContact(formData: FormData) {
   const id = z.string().cuid().parse(formData.get('id'));
-  const parsed = contactInput.safeParse({ displayName: formData.get('displayName'), category: formData.get('category'), notes: formData.get('notes') || undefined });
+  const parsed = contactInput.safeParse({ displayName: formData.get('displayName'), category: formData.get('category'), notes: getOptionalNotes(formData) });
   if (!parsed.success) throw new Error('Datos de contacto inválidos.');
   const { organizationId, userId, role } = await requireCurrentOrganization();
   assertContactWriteAccess(role);
@@ -86,7 +86,7 @@ export async function addContactTag(formData: FormData) {
   await assertContactInWorkspace(contactId, organizationId);
   await prisma.$transaction(async (tx) => {
     const tag = await tx.contactTag.upsert({ where: { organizationId_name: { organizationId, name } }, create: { organizationId, name }, update: {}, select: { id: true } });
-    await tx.contactTagAssignment.upsert({ where: { contactId_tagId: { contactId, tagId: tag.id } }, create: { contactId, tagId: tag.id }, update: {} });
+    await tx.contactTagAssignment.upsert({ where: { contactId_tagId: { contactId, tagId: tag.id } }, create: { contactId, tagId: tag.id, organizationId }, update: {} });
     await tx.auditLog.create({ data: { organizationId, actorUserId: userId, action: 'contact.tag.added', resourceType: 'Contact', resourceId: contactId } });
   });
   revalidatePath('/dashboard/contacts');
