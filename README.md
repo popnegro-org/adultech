@@ -4,8 +4,8 @@ SaaS B2C/B2B para creadores adultos independientes de Argentina y Latinoamérica
 
 ## Alcance y límites
 - **P0 SaaS Core:** Auth.js Credentials, workspaces, tenancy, roles y auditoría.
-- **P0 Creator CRM:** directorio de contactos, categorías, notas y registro de creación.
-- **P0 Privacy Center:** acceso autenticado y aislamiento por organización; exportación, eliminación y consentimientos pendientes.
+- **P0 Creator CRM:** alta, edición y eliminación de contactos; categorías, notas, etiquetas e historial de interacciones.
+- **P0 Privacy Center:** acceso autenticado, aislamiento por organización, registro de consentimientos y exportación CSV auditada. La eliminación de solicitudes de datos sigue pendiente.
 - **P1 Marketing Hub:** campañas, calendario editorial, enlaces UTM y métricas.
 - **P1 Revenue Tracker:** registro manual de ingresos y gastos externos.
 - **P2 Agency Manager:** equipos y gestión de múltiples perfiles.
