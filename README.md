@@ -44,7 +44,7 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 - Verificación/recuperación de correo y política de sesiones. El alta sin verificación solo está disponible en desarrollo local; no se habilita registro en entornos alojados hasta implementar confirmación del buzón.
 - Solicitudes completas de acceso, exportación y eliminación de datos personales.
 - Tests de sesión y autorización por rol, además del smoke test de aislamiento multi-tenant, rechazo de referencias cruzadas y cascadas.
-- Auditoría de seguridad y pruebas E2E de sesión/autorización.
+- Auditoría de seguridad y pruebas E2E de sesión/autorización. CI incluye smoke HTTP de la página de login y del endpoint de registro alojado.
 - QA funcional/visual autenticado y configuración de variables de entorno en Preview.
 
 ## Privacidad y seguridad
