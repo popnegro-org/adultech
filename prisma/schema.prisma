@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model RateLimitCleanupState {
+  id        String   @id
+  lastRunAt DateTime
+}
+
 model RateLimitBucket {
   key        String   @id
   count      Int      @default(0)
