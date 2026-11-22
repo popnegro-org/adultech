@@ -33,6 +33,21 @@ jobs:
         with:
           node-version: 22
       - run: npm install --no-audit --no-fund
+      - name: Detect generated npm lockfile
+        id: npm-lockfile
+        run: |
+          if git ls-files --error-unmatch package-lock.json >/dev/null 2>&1; then
+            echo "untracked=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "untracked=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Upload generated npm lockfile
+        if: steps.npm-lockfile.outputs.untracked == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ivanacain-generated-package-lock
+          path: package-lock.json
+          retention-days: 1
       - run: npm run db:generate
       - run: npm run db:validate
       - run: npm run db:migrate:deploy
