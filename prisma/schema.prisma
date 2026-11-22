@@ -92,8 +92,8 @@ model ContactTagAssignment {
   tagId          String
   organizationId String
   createdAt      DateTime   @default(now())
-  contact   Contact    @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  tag       ContactTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  contact   Contact    @relation(fields: [contactId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  tag       ContactTag @relation(fields: [tagId, organizationId], references: [id, organizationId], onDelete: Cascade)
   @@unique([contactId, tagId])
   @@index([tagId])
 }
@@ -108,7 +108,7 @@ model ConsentRecord {
   capturedAt     DateTime       @default(now())
   withdrawnAt    DateTime?
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  contact        Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  contact        Contact       @relation(fields: [contactId, organizationId], references: [id, organizationId], onDelete: Cascade)
   @@index([organizationId, status])
   @@index([contactId, capturedAt])
 }
