@@ -26,10 +26,19 @@ try {
   assert.equal(tenantAContacts[0].id, contactA.id);
   assert.equal((await prisma.contact.findMany({ where: { organizationId: orgA.id, id: contactB.id } })).length, 0);
 
-  const tag = await prisma.contactTag.create({ data: { organizationId: orgA.id, name: 'qa-tag' } });
-  await prisma.contactTagAssignment.create({ data: { contactId: contactA.id, tagId: tag.id } });
+  const [tagA, tagB] = await Promise.all([
+    prisma.contactTag.create({ data: { organizationId: orgA.id, name: 'qa-tag-a' } }),
+    prisma.contactTag.create({ data: { organizationId: orgB.id, name: 'qa-tag-b' } }),
+  ]);
+  await prisma.contactTagAssignment.create({ data: { contactId: contactA.id, tagId: tagA.id, organizationId: orgA.id } });
+  await assert.rejects(() => prisma.contactTagAssignment.create({
+    data: { contactId: contactA.id, tagId: tagB.id, organizationId: orgA.id },
+  }));
   await prisma.contactInteraction.create({ data: { contactId: contactA.id, kind: 'NOTE', summary: 'QA interaction' } });
   await prisma.consentRecord.create({ data: { organizationId: orgA.id, contactId: contactA.id, purpose: 'MARKETING', status: 'GRANTED' } });
+  await assert.rejects(() => prisma.consentRecord.create({
+    data: { organizationId: orgA.id, contactId: contactB.id, purpose: 'MARKETING', status: 'GRANTED' },
+  }));
 
   assert.equal(await prisma.contactTagAssignment.count({ where: { contactId: contactA.id } }), 1);
   assert.equal(await prisma.consentRecord.count({ where: { organizationId: orgA.id } }), 1);
