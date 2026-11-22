@@ -39,13 +39,13 @@ jobs:
       - name: Detect generated npm lockfile
         id: npm-lockfile
         run: |
-          if git ls-files --error-unmatch package-lock.json >/dev/null 2>&1; then
-            echo "untracked=false" >> "$GITHUB_OUTPUT"
+          if git diff --quiet -- package-lock.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           else
-            echo "untracked=true" >> "$GITHUB_OUTPUT"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Commit updated npm lockfile
-        if: steps.npm-lockfile.outputs.untracked == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        if: steps.npm-lockfile.outputs.changed == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
