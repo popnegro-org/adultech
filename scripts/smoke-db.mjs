@@ -5,6 +5,8 @@ import { consumeRateLimit } from '../src/lib/rate-limit.mjs';
 import { canWriteContacts } from '../src/lib/contact-permissions.mjs';
 import { registrationAcceptedResponse } from '../src/lib/registration-response.mjs';
 import { isRegistrationEnabled } from '../src/lib/registration-policy.mjs';
+import { DUMMY_PASSWORD_HASH } from '../src/lib/auth-utils.mjs';
+import { compare } from 'bcryptjs';
 
 const prisma = new PrismaClient();
 assert.equal(canWriteContacts('OWNER'), true);
@@ -18,6 +20,7 @@ assert.equal(registrationCreated.status, 202);
 assert.equal(isRegistrationEnabled('development'), true);
 assert.equal(isRegistrationEnabled('production'), false);
 assert.equal(isRegistrationEnabled(undefined), false);
+assert.equal(await compare('unknown-account-password', DUMMY_PASSWORD_HASH), false);
 const suffix = randomUUID();
 let orgA;
 let orgB;
