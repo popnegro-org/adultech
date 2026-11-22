@@ -42,7 +42,7 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 ## Pendientes antes de beta
 - Verificación/recuperación de correo y política de sesiones. El alta actual crea cuentas antes de verificar el correo; la respuesta uniforme mitiga enumeración, pero no evita la reserva de direcciones ajenas. No habilitar registros públicos reales hasta implementar confirmación de correo.
 - Solicitudes completas de acceso, exportación y eliminación de datos personales.
-- Lockfile npm reproducible: el workflow genera y versiona automáticamente package-lock.json en la rama candidata cuando aún no existe, rebasa el cambio sobre el head actual y ejecuta el resto de CI sobre esa resolución bloqueada.
+- Lockfile npm reproducible: package-lock.json está versionado y CI instala dependencias de forma reproducible a partir de ese lockfile.
 - Tests de sesión y autorización por rol, además del smoke test de aislamiento multi-tenant, rechazo de referencias cruzadas y cascadas.
 - Auditoría de seguridad y pruebas E2E de sesión/autorización.
 - QA funcional/visual autenticado y configuración de variables de entorno en Preview.
