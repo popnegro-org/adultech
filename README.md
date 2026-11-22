@@ -35,6 +35,7 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 - Resolución de organización desde la sesión autenticada; no acepta organizationId ni userId controlados por el navegador.
 - Escrituras del Creator CRM restringidas en servidor a OWNER, ADMIN y MANAGER; MEMBER queda sin permisos de mutación.
 - CRUD de contactos, etiquetas, interacciones y registros append-only de consentimiento, acotados por organizationId.
+- Integridad referencial multi-tenant reforzada en PostgreSQL: las asignaciones de etiquetas y los consentimientos no pueden vincular registros de organizaciones distintas, incluso ante escrituras fuera de la aplicación.
 - Exportación CSV del workspace, con auditoría y mitigación de inyección de fórmulas.
 - Secciones de campañas, analítica, ingresos y configuración marcadas como pendientes; no simulan datos reales.
 
@@ -43,7 +44,7 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 - Recuperación/verificación de correo y política de sesiones.
 - Solicitudes completas de acceso, exportación y eliminación de datos personales.
 - Lockfile npm reproducible.
-- Tests de sesión y autorización por rol, además del smoke test actual de aislamiento multi-tenant y cascadas.
+- Tests de sesión y autorización por rol, además del smoke test de aislamiento multi-tenant, rechazo de referencias cruzadas y cascadas.
 - Rate limiting, recuperación/verificación de correo y auditoría de seguridad.
 - QA funcional/visual autenticado y configuración de variables de entorno en Preview.
 
