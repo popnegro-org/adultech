@@ -33,19 +33,19 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 - Auth.js Credentials con sesión JWT cifrada en cookie HttpOnly.
 - Creación transaccional de workspace y membresía OWNER.
 - Resolución de organización desde la sesión autenticada; no acepta organizationId ni userId controlados por el navegador.
-- Alta y listado de contactos acotados por organizationId en servidor.
-- Auditoría de creación de contactos.
+- Escrituras del Creator CRM restringidas en servidor a OWNER, ADMIN y MANAGER; MEMBER queda sin permisos de mutación.
+- CRUD de contactos, etiquetas, interacciones y registros append-only de consentimiento, acotados por organizationId.
+- Exportación CSV del workspace, con auditoría y mitigación de inyección de fórmulas.
 - Secciones de campañas, analítica, ingresos y configuración marcadas como pendientes; no simulan datos reales.
 
 ## Pendientes antes de beta
 - Rate limiting y protección anti-abuso para registro e inicio de sesión.
 - Recuperación/verificación de correo y política de sesiones.
-- CRUD completo de contactos, interacciones, etiquetas y consentimiento.
-- Exportación y eliminación verificables.
-- Migraciones versionadas y lockfile npm reproducible.
-- Tests unitarios/integración, incluyendo aislamiento multi-tenant y autorización.
-- Auditoría de seguridad, QA responsive/visual y Preview de Vercel.
-- Configuración de variables de entorno en el proveedor de hosting.
+- Solicitudes completas de acceso, exportación y eliminación de datos personales.
+- Lockfile npm reproducible.
+- Tests de sesión y autorización por rol, además del smoke test actual de aislamiento multi-tenant y cascadas.
+- Rate limiting, recuperación/verificación de correo y auditoría de seguridad.
+- QA funcional/visual autenticado y configuración de variables de entorno en Preview.
 
 ## Privacidad y seguridad
 Toda consulta de negocio debe acotarse por organizationId obtenido de la membresía del usuario autenticado en servidor. No confiar en IDs enviados por el cliente. No almacenar contenido explícito, contraseñas de plataformas externas ni información íntima innecesaria de contactos. Aplicar mínimo privilegio, auditoría y portabilidad/eliminación por workspace.
