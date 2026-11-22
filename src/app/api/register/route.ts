@@ -1,6 +1,7 @@
 import { createHmac, randomUUID } from 'node:crypto';
 import { hash } from 'bcryptjs';
 import { registrationAcceptedResponse } from '@/lib/registration-response.mjs';
+import { isRegistrationEnabled } from '@/lib/registration-policy.mjs';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
@@ -16,6 +17,9 @@ const registrationSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  if (!isRegistrationEnabled()) {
+    return NextResponse.json({ error: 'El registro público está temporalmente deshabilitado mientras incorporamos la verificación de correo.' }, { status: 503 });
+  }
   const ip = (request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown').slice(0, 64);
   const rateLimitSecret = process.env.AUTH_SECRET;
   if (!rateLimitSecret) return NextResponse.json({ error: 'Servicio temporalmente no disponible.' }, { status: 503 });
