@@ -13,7 +13,7 @@ export async function requireCurrentOrganization() {
 
   if (!userId) throw new Error('UNAUTHORIZED');
 
-  const membership = await prisma.membership.findFirst({
+  const memberships = await prisma.membership.findMany({
     where: { userId },
     orderBy: { createdAt: 'asc' },
     select: {
@@ -23,7 +23,9 @@ export async function requireCurrentOrganization() {
     },
   });
 
-  if (!membership) throw new Error('FORBIDDEN');
+  // Never silently select the first workspace when a user has multiple memberships.
+  if (memberships.length !== 1) throw new Error('FORBIDDEN');
+  const membership = memberships[0];
 
   return {
     organizationId: membership.organizationId,
