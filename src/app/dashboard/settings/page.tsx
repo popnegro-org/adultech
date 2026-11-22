@@ -1,0 +1,3 @@
+export default function SettingsPage() {
+  return <><header className="topline"><div><div className="eyebrow">Privacy Center</div><h1>Configuración</h1><p>Privacidad, seguridad y administración del workspace.</p></div></header><section className="card"><h2>Controles pendientes</h2><p>La siguiente etapa incorporará exportación, eliminación de datos, gestión de consentimientos y revisión de sesiones. Estas operaciones no se exponen hasta completar sus flujos auditables.</p></section></>;
+}
