@@ -29,7 +29,7 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 
 ## Estado de implementación
 - Landing pública y dashboard autenticado.
-- Registro con contraseña hasheada mediante bcryptjs y confirmación de mayoría de edad. La API devuelve HTTP 202 y el mismo cuerpo ante creación y conflicto de email único; aplica rate limiting persistente por IP y email con claves HMAC-SHA256.
+- Registro local con contraseña hasheada mediante bcryptjs y confirmación de mayoría de edad. En entornos alojados (NODE_ENV=production) el alta pública permanece deshabilitada hasta implementar verificación de correo. La API de desarrollo devuelve HTTP 202 y el mismo cuerpo ante creación y conflicto de email único; aplica rate limiting persistente por IP y email con claves HMAC-SHA256. El flujo no inicia sesión automáticamente después del alta.
 - Auth.js Credentials con sesión JWT cifrada en cookie HttpOnly.
 - Creación transaccional de workspace y membresía OWNER.
 - Resolución de organización desde la sesión autenticada; no acepta organizationId ni userId controlados por el navegador. El PMV rechaza sesiones con múltiples membresías hasta implementar un selector explícito de workspace, en lugar de elegir una organización arbitrariamente.
