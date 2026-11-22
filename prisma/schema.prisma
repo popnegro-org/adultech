@@ -59,6 +59,7 @@ model Contact {
 
   @@index([organizationId, createdAt])
   @@index([organizationId, category])
+  @@unique([id, organizationId])
 }
 
 model ContactInteraction {
@@ -81,14 +82,16 @@ model ContactTag {
   contacts       ContactTagAssignment[]
   createdAt      DateTime               @default(now())
   @@unique([organizationId, name])
+  @@unique([id, organizationId])
   @@index([organizationId])
 }
 
 model ContactTagAssignment {
-  id        String     @id @default(cuid())
-  contactId String
-  tagId     String
-  createdAt DateTime   @default(now())
+  id             String     @id @default(cuid())
+  contactId      String
+  tagId          String
+  organizationId String
+  createdAt      DateTime   @default(now())
   contact   Contact    @relation(fields: [contactId], references: [id], onDelete: Cascade)
   tag       ContactTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
   @@unique([contactId, tagId])
