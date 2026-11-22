@@ -8,8 +8,22 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ivana_cain
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d ivana_cain"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/ivana_cain?sslmode=disable
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ivana_cain?schema=public
       AUTH_SECRET: ci-only-secret-that-is-long-enough-for-authjs-validation
       AUTH_URL: http://localhost:3000
     steps:
@@ -20,6 +34,7 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm run db:generate
       - run: npm run db:validate
+      - run: npm run db:migrate:deploy
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
