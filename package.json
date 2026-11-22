@@ -37,6 +37,7 @@
   },
   "overrides": {
     "deepmerge-ts@^7": "^8.0.2",
-    "postcss": "^8.5.23"
+    "postcss": "^8.5.23",
+    "effect": "^3.22.1"
   }
 }
