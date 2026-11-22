@@ -37,12 +37,12 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 - CRUD de contactos, etiquetas, interacciones y registros append-only de consentimiento, acotados por organizationId.
 - Integridad referencial multi-tenant reforzada en PostgreSQL: las asignaciones de etiquetas y los consentimientos no pueden vincular registros de organizaciones distintas, incluso ante escrituras fuera de la aplicación.
 - Exportación CSV de contactos y exportación JSON completa del workspace (cuenta, miembros, contactos, interacciones, etiquetas, consentimientos, campañas y auditoría), ambas auditadas; la exportación completa requiere OWNER/ADMIN.
+- `package-lock.json` versionado; CI instala dependencias mediante `npm ci`.
 - Secciones de campañas, analítica, ingresos y configuración marcadas como pendientes; no simulan datos reales.
 
 ## Pendientes antes de beta
-- Verificación/recuperación de correo y política de sesiones. El alta actual crea cuentas antes de verificar el correo; la respuesta uniforme mitiga enumeración, pero no evita la reserva de direcciones ajenas. No habilitar registros públicos reales hasta implementar confirmación de correo.
+- Verificación/recuperación de correo y política de sesiones. El alta sin verificación solo está disponible en desarrollo local; no se habilita registro en entornos alojados hasta implementar confirmación del buzón.
 - Solicitudes completas de acceso, exportación y eliminación de datos personales.
-- Lockfile npm reproducible: package-lock.json está versionado y CI instala dependencias de forma reproducible a partir de ese lockfile.
 - Tests de sesión y autorización por rol, además del smoke test de aislamiento multi-tenant, rechazo de referencias cruzadas y cascadas.
 - Auditoría de seguridad y pruebas E2E de sesión/autorización.
 - QA funcional/visual autenticado y configuración de variables de entorno en Preview.
