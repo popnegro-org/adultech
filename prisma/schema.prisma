@@ -7,6 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model RateLimitBucket {
+  key        String   @id
+  count      Int      @default(0)
+  windowStart DateTime
+  updatedAt  DateTime @updatedAt
+}
+
 model User {
   id           String       @id @default(cuid())
   email        String       @unique
