@@ -1,5 +1,6 @@
 import { createHmac, randomUUID } from 'node:crypto';
 import { hash } from 'bcryptjs';
+import { registrationAcceptedResponse } from '@/lib/registration-response.mjs';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
@@ -20,8 +21,15 @@ export async function POST(request: Request) {
   if (!rateLimitSecret) return NextResponse.json({ error: 'Servicio temporalmente no disponible.' }, { status: 503 });
   const ipKey = createHmac('sha256', rateLimitSecret).update(ip).digest('hex');
   try {
-    const allowed = await consumeRateLimit(prisma, `register:${ipKey}`, 5, 15 * 60 * 1000);
-    if (!allowed) {
+    const emailForLimit = typeof (await request.clone().json().catch(() => null))?.email === 'string'
+      ? String((await request.clone().json().catch(() => null)).email).trim().toLowerCase()
+      : 'invalid';
+    const emailKey = createHmac('sha256', rateLimitSecret).update(emailForLimit).digest('hex');
+    const [ipAllowed, emailAllowed] = await Promise.all([
+      consumeRateLimit(prisma, `register:ip:${ipKey}`, 5, 15 * 60 * 1000),
+      consumeRateLimit(prisma, `register:email:${emailKey}`, 3, 60 * 60 * 1000),
+    ]);
+    if (!ipAllowed || !emailAllowed) {
       return NextResponse.json(
         { error: 'Demasiados intentos. Volvé a probar en 15 minutos.' },
         { status: 429, headers: { 'Retry-After': '900' } },
@@ -65,5 +73,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No se pudo crear la cuenta. Verificá los datos o iniciá sesión.' }, { status: 409 });
   }
 
-  return NextResponse.json({ ok: true }, { status: 201 });
+  const result = registrationAcceptedResponse();
+  return NextResponse.json(result.body, { status: result.status });
 }
