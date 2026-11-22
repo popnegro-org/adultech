@@ -32,7 +32,7 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 - Registro de cuenta con contraseña hasheada mediante bcryptjs y confirmación de mayoría de edad.
 - Auth.js Credentials con sesión JWT cifrada en cookie HttpOnly.
 - Creación transaccional de workspace y membresía OWNER.
-- Resolución de organización desde la sesión autenticada; no acepta organizationId ni userId controlados por el navegador.
+- Resolución de organización desde la sesión autenticada; no acepta organizationId ni userId controlados por el navegador. El PMV rechaza sesiones con múltiples membresías hasta implementar un selector explícito de workspace, en lugar de elegir una organización arbitrariamente.
 - Escrituras del Creator CRM restringidas en servidor a OWNER, ADMIN y MANAGER; MEMBER queda sin permisos de mutación.
 - CRUD de contactos, etiquetas, interacciones y registros append-only de consentimiento, acotados por organizationId.
 - Integridad referencial multi-tenant reforzada en PostgreSQL: las asignaciones de etiquetas y los consentimientos no pueden vincular registros de organizaciones distintas, incluso ante escrituras fuera de la aplicación.
