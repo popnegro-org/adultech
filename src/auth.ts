@@ -5,6 +5,7 @@ import { compare } from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { consumeRateLimit } from '@/lib/rate-limit.mjs';
+import { DUMMY_PASSWORD_HASH } from '@/lib/auth-utils.mjs';
 
 const credentialsSchema = z.object({
   email: z.string().email().max(254),
@@ -38,10 +39,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!ipAllowed || !emailAllowed) return null;
 
         const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) return null;
-
-        const valid = await compare(parsed.data.password, user.passwordHash);
-        if (!valid) return null;
+        // Always perform one cost-12 bcrypt comparison to reduce account-enumeration timing differences.
+        const valid = await compare(parsed.data.password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
+        if (!user || !valid) return null;
 
         return { id: user.id, email: user.email, name: user.name };
       },
