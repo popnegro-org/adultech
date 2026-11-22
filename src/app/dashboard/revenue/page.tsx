@@ -1,0 +1,3 @@
+export default function RevenuePage() {
+  return <><header className="topline"><div><div className="eyebrow">Revenue Tracker</div><h1>Ingresos</h1><p>Registro informativo de ingresos y gastos externos.</p></div></header><section className="card"><h2>Registro manual pendiente</h2><p>Este módulo permitirá registrar ingresos declarados por plataforma, gastos, moneda y fecha. IvanaCain no procesa pagos por contenido adulto ni retiene comisiones sobre esas operaciones.</p></section></>;
+}
