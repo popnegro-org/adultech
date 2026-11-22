@@ -40,7 +40,7 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 - Secciones de campañas, analítica, ingresos y configuración marcadas como pendientes; no simulan datos reales.
 
 ## Pendientes antes de beta
-- Rate limiting y protección anti-abuso para registro e inicio de sesión.
+- Verificación/recuperación de correo y política de sesiones.
 - Recuperación/verificación de correo y política de sesiones.
 - Solicitudes completas de acceso, exportación y eliminación de datos personales.
 - Lockfile npm reproducible.
