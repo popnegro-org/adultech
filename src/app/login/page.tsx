@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import AuthForm from './auth-form';
+import { isRegistrationEnabled } from '@/lib/registration-policy.mjs';
 
 export default async function LoginPage() {
   const session = await auth();
@@ -17,7 +18,7 @@ export default async function LoginPage() {
         <div className="eyebrow">Tu negocio. Tu audiencia. Tu control.</div>
         <h1>Accedé a tu workspace</h1>
         <p>Gestioná tu actividad comercial en un espacio privado.</p>
-        <AuthForm />
+        <AuthForm registrationEnabled={isRegistrationEnabled()} />
         <small>Servicio para mayores de 18 años. No alojamos ni distribuimos contenido explícito.</small>
       </section>
     </main>
