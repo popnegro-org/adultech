@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { consumeRateLimit } from '../src/lib/rate-limit.mjs';
 import { canWriteContacts } from '../src/lib/contact-permissions.mjs';
 import { registrationAcceptedResponse } from '../src/lib/registration-response.mjs';
+import { isRegistrationEnabled } from '../src/lib/registration-policy.mjs';
 
 const prisma = new PrismaClient();
 assert.equal(canWriteContacts('OWNER'), true);
@@ -14,6 +15,8 @@ const registrationCreated = registrationAcceptedResponse();
 const registrationDuplicate = registrationAcceptedResponse();
 assert.deepEqual(registrationCreated, registrationDuplicate);
 assert.equal(registrationCreated.status, 202);
+assert.equal(isRegistrationEnabled('development'), true);
+assert.equal(isRegistrationEnabled('production'), false);
 const suffix = randomUUID();
 let orgA;
 let orgB;
