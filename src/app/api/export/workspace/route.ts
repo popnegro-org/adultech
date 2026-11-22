@@ -33,7 +33,7 @@ export async function GET() {
     },
   });
 
-  const [account, organization, memberships, contacts, campaigns, auditLogs] = await Promise.all([
+  const [account, organization, memberships, contacts, contactTags, campaigns, auditLogs] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, email: true, name: true, createdAt: true },
@@ -60,6 +60,7 @@ export async function GET() {
         consentRecords: { orderBy: { capturedAt: 'asc' } },
       },
     }),
+    prisma.contactTag.findMany({ where: { organizationId }, orderBy: { createdAt: 'asc' }, select: { id: true, name: true, createdAt: true } }),
     prisma.campaign.findMany({ where: { organizationId }, orderBy: { createdAt: 'asc' } }),
     prisma.auditLog.findMany({ where: { organizationId }, orderBy: { createdAt: 'asc' } }),
   ]);
@@ -71,6 +72,7 @@ export async function GET() {
     organization,
     memberships,
     contacts,
+    contactTags,
     campaigns,
     auditLogs,
   };
