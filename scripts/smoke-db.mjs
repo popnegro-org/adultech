@@ -3,12 +3,17 @@ import { randomUUID } from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
 import { consumeRateLimit } from '../src/lib/rate-limit.mjs';
 import { canWriteContacts } from '../src/lib/contact-permissions.mjs';
+import { registrationAcceptedResponse } from '../src/lib/registration-response.mjs';
 
 const prisma = new PrismaClient();
 assert.equal(canWriteContacts('OWNER'), true);
 assert.equal(canWriteContacts('ADMIN'), true);
 assert.equal(canWriteContacts('MANAGER'), true);
 assert.equal(canWriteContacts('MEMBER'), false);
+const registrationCreated = registrationAcceptedResponse();
+const registrationDuplicate = registrationAcceptedResponse();
+assert.deepEqual(registrationCreated, registrationDuplicate);
+assert.equal(registrationCreated.status, 202);
 const suffix = randomUUID();
 let orgA;
 let orgB;
