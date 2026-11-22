@@ -12,6 +12,11 @@ const contactInput = z.object({
   notes: z.string().trim().max(2000).optional(),
 });
 
+function getOptionalNotes(formData: FormData) {
+  const value = formData.get('notes');
+  return value === null ? undefined : String(value);
+}
+
 function assertContactWriteAccess(role: string) {
   if (!['OWNER', 'ADMIN', 'MANAGER'].includes(role)) throw new Error('FORBIDDEN');
 }
@@ -22,7 +27,7 @@ async function assertContactInWorkspace(contactId: string, organizationId: strin
 }
 
 export async function createContact(formData: FormData) {
-  const parsed = contactInput.safeParse({ displayName: formData.get('displayName'), category: formData.get('category'), notes: formData.get('notes') || undefined });
+  const parsed = contactInput.safeParse({ displayName: formData.get('displayName'), category: formData.get('category'), notes: getOptionalNotes(formData) });
   if (!parsed.success) throw new Error('Datos de contacto inválidos.');
   const { organizationId, userId, role } = await requireCurrentOrganization();
   assertContactWriteAccess(role);
