@@ -1,8 +1,10 @@
+import { createHash } from 'node:crypto';
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { consumeRateLimit } from '@/lib/rate-limit.mjs';
 
 const credentialsSchema = z.object({
   email: z.string().email().max(254),
@@ -19,11 +21,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: 'Correo electrónico', type: 'email' },
         password: { label: 'Contraseña', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const parsed = credentialsSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
         const email = parsed.data.email.trim().toLowerCase();
+        const ip = (request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown').slice(0, 64);
+        const emailKey = createHash('sha256').update(email).digest('hex');
+        const [ipAllowed, emailAllowed] = await Promise.all([
+          consumeRateLimit(prisma, `login:ip:${ip}`, 12, 15 * 60 * 1000),
+          consumeRateLimit(prisma, `login:email:${emailKey}`, 8, 15 * 60 * 1000),
+        ]);
+        if (!ipAllowed || !emailAllowed) return null;
+
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) return null;
 
