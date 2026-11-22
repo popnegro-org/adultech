@@ -27,9 +27,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const email = parsed.data.email.trim().toLowerCase();
         const ip = (request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown').slice(0, 64);
+        const ipKey = createHash('sha256').update(ip).digest('hex');
         const emailKey = createHash('sha256').update(email).digest('hex');
         const [ipAllowed, emailAllowed] = await Promise.all([
-          consumeRateLimit(prisma, `login:ip:${ip}`, 12, 15 * 60 * 1000),
+          consumeRateLimit(prisma, `login:ip:${ipKey}`, 12, 15 * 60 * 1000),
           consumeRateLimit(prisma, `login:email:${emailKey}`, 8, 15 * 60 * 1000),
         ]);
         if (!ipAllowed || !emailAllowed) return null;
