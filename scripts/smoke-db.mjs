@@ -12,7 +12,17 @@ const rateLimitKey = `qa-rate-${suffix}`;
 
 try {
   const rateLimitNow = new Date();
+  const staleRateLimitKey = `qa-expired-${suffix}`;
+  await prisma.rateLimitBucket.create({
+    data: {
+      key: staleRateLimitKey,
+      count: 1,
+      windowStart: new Date(rateLimitNow.getTime() - 48 * 60 * 60 * 1000),
+      updatedAt: new Date(rateLimitNow.getTime() - 48 * 60 * 60 * 1000),
+    },
+  });
   assert.equal(await consumeRateLimit(prisma, rateLimitKey, 2, 60_000, rateLimitNow), true);
+  assert.equal(await prisma.rateLimitBucket.findUnique({ where: { key: staleRateLimitKey } }), null);
   assert.equal(await consumeRateLimit(prisma, rateLimitKey, 2, 60_000, rateLimitNow), true);
   assert.equal(await consumeRateLimit(prisma, rateLimitKey, 2, 60_000, rateLimitNow), false);
   assert.equal(await consumeRateLimit(prisma, rateLimitKey, 2, 60_000, new Date(rateLimitNow.getTime() + 60_001)), true);
@@ -60,6 +70,7 @@ try {
   if (orgA?.id) await prisma.organization.deleteMany({ where: { id: orgA.id } });
   if (orgB?.id) await prisma.organization.deleteMany({ where: { id: orgB.id } });
   if (user?.id) await prisma.user.deleteMany({ where: { id: user.id } });
-  await prisma.rateLimitBucket.deleteMany({ where: { key: rateLimitKey } });
+  await prisma.rateLimitBucket.deleteMany({ where: { key: { in: [rateLimitKey, staleRateLimitKey] } } });
+  await prisma.rateLimitCleanupState.deleteMany({ where: { id: 'global' } });
   await prisma.$disconnect();
 }
