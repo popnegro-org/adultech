@@ -3,18 +3,20 @@
 import { useState, type FormEvent } from 'react';
 import { signIn } from 'next-auth/react';
 
-export default function AuthForm() {
+export default function AuthForm({ registrationEnabled }: { registrationEnabled: boolean }) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isAdult, setIsAdult] = useState(false);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
+    setMessage('');
     setBusy(true);
 
     try {
@@ -26,6 +28,11 @@ export default function AuthForm() {
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'No se pudo crear la cuenta.');
+        setMode('login');
+        setPassword('');
+        setMessage('Si la cuenta se pudo crear, ya podés iniciar sesión. Si ya existía, iniciá sesión con tu contraseña.');
+        setBusy(false);
+        return;
       }
 
       const result = await signIn('credentials', {
@@ -64,12 +71,13 @@ export default function AuthForm() {
         </label>
       )}
       {error && <p className="auth-error" role="alert">{error}</p>}
+      {message && <p className="auth-success" role="status">{message}</p>}
       <button className="button auth-submit" type="submit" disabled={busy}>
         {busy ? 'Procesando…' : mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
       </button>
-      <button className="auth-switch" type="button" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}>
+      {registrationEnabled && <button className="auth-switch" type="button" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setMessage(''); }}>
         {mode === 'login' ? 'Crear una cuenta' : 'Ya tengo una cuenta'}
-      </button>
+      </button>}
     </form>
   );
 }
