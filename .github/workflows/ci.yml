@@ -36,6 +36,7 @@ jobs:
       - run: npm run db:generate
       - run: npm run db:validate
       - run: npm run db:migrate:deploy
+      - run: npm run test:db
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build

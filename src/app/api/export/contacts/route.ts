@@ -3,7 +3,9 @@ import { requireCurrentOrganization } from '@/lib/tenant';
 import { prisma } from '@/lib/prisma';
 
 function csvCell(value: string | null | undefined) {
-  return `"${(value ?? '').replaceAll('"', '""')}"`;
+  const raw = value ?? '';
+  const safe = /^[\\s]*[=+\\-@]/.test(raw) ? `'${raw}` : raw;
+  return `"${safe.replaceAll('"', '""')}"`;
 }
 
 export const runtime = 'nodejs';

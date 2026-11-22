@@ -12,7 +12,8 @@
     "db:validate": "prisma validate",
     "db:migrate": "prisma migrate dev",
     "prebuild": "prisma generate",
-    "db:migrate:deploy": "prisma migrate deploy"
+    "db:migrate:deploy": "prisma migrate deploy",
+    "test:db": "node scripts/smoke-db.mjs"
   },
   "dependencies": {
     "@prisma/client": "6.19.0",

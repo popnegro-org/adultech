@@ -1,4 +1,5 @@
-import { addContactTag, addInteraction, createContact, deleteContact, recordConsent, updateContact } from './actions';
+import { addContactTag, addInteraction, createContact, recordConsent, updateContact } from './actions';
+import DeleteContactForm from './delete-contact-form';
 import { prisma } from '@/lib/prisma';
 import { requireCurrentOrganization } from '@/lib/tenant';
 
@@ -26,7 +27,7 @@ export default async function Contacts() {
       <section className="section contact-list" aria-label="Directorio de contactos">
         {contacts.map((contact) => (
           <article className="card contact-card" key={contact.id}>
-            <div className="contact-heading"><div><h2>{contact.displayName}</h2><small>{categoryLabels[contact.category] ?? contact.category}</small></div><form action={deleteContact}><input type="hidden" name="id" value={contact.id} /><button className="auth-switch danger-action" type="submit">Eliminar</button></form></div>
+            <div className="contact-heading"><div><h2>{contact.displayName}</h2><small>{categoryLabels[contact.category] ?? contact.category}</small></div><DeleteContactForm id={contact.id} /></div>
             {contact.notes && <p>{contact.notes}</p>}
             <div className="tag-list">{contact.tags.map(({ tag }) => <span className="tag" key={tag.id}>{tag.name}</span>)}</div>
             <details className="contact-details">
