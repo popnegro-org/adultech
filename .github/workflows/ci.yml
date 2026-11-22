@@ -8,6 +8,10 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ivana_cain?sslmode=disable
+      AUTH_SECRET: ci-only-secret-that-is-long-enough-for-authjs-validation
+      AUTH_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -15,6 +19,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install --no-audit --no-fund
+      - run: npm run db:generate
+      - run: npm run db:validate
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
