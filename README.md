@@ -30,14 +30,14 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 ## Estado de implementación
 - Landing pública y dashboard autenticado.
 - Registro local con contraseña hasheada mediante bcryptjs y confirmación de mayoría de edad. En entornos alojados (NODE_ENV=production) el alta pública permanece deshabilitada hasta implementar verificación de correo. La API de desarrollo devuelve HTTP 202 y el mismo cuerpo ante creación y conflicto de email único; aplica rate limiting persistente por IP y email con claves HMAC-SHA256. El flujo no inicia sesión automáticamente después del alta.
-- Auth.js Credentials con sesión JWT cifrada en cookie HttpOnly.
+- Auth.js Credentials con sesión JWT cifrada en cookie HttpOnly; los intentos con emails inexistentes realizan una comparación bcrypt de costo equivalente para reducir enumeración por tiempo.
 - Creación transaccional de workspace y membresía OWNER.
 - Resolución de organización desde la sesión autenticada; no acepta organizationId ni userId controlados por el navegador. El PMV rechaza sesiones con múltiples membresías hasta implementar un selector explícito de workspace, en lugar de elegir una organización arbitrariamente.
 - Escrituras del Creator CRM restringidas en servidor a OWNER, ADMIN y MANAGER; MEMBER queda sin permisos de mutación.
 - CRUD de contactos, etiquetas, interacciones y registros append-only de consentimiento, acotados por organizationId.
 - Integridad referencial multi-tenant reforzada en PostgreSQL: las asignaciones de etiquetas y los consentimientos no pueden vincular registros de organizaciones distintas, incluso ante escrituras fuera de la aplicación.
 - Exportación CSV de contactos y exportación JSON completa del workspace (cuenta, miembros, contactos, interacciones, etiquetas, consentimientos, campañas y auditoría), ambas auditadas; la exportación completa requiere OWNER/ADMIN.
-- `package-lock.json` versionado; CI instala dependencias mediante `npm ci` y ejecuta `npm audit --audit-level=high`.
+- `package-lock.json` versionado; CI instala dependencias mediante `npm ci` y `npm audit --audit-level=high` reporta 0 vulnerabilidades en el lockfile actual.
 - Secciones de campañas, analítica, ingresos y configuración marcadas como pendientes; no simulan datos reales.
 
 ## Pendientes antes de beta
