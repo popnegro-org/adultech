@@ -29,7 +29,7 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 
 ## Estado de implementación
 - Landing pública y dashboard autenticado.
-- Registro de cuenta con contraseña hasheada mediante bcryptjs y confirmación de mayoría de edad.
+- Registro con contraseña hasheada mediante bcryptjs y confirmación de mayoría de edad. La API devuelve HTTP 202 y el mismo cuerpo ante creación y conflicto de email único; aplica rate limiting persistente por IP y email con claves HMAC-SHA256.
 - Auth.js Credentials con sesión JWT cifrada en cookie HttpOnly.
 - Creación transaccional de workspace y membresía OWNER.
 - Resolución de organización desde la sesión autenticada; no acepta organizationId ni userId controlados por el navegador. El PMV rechaza sesiones con múltiples membresías hasta implementar un selector explícito de workspace, en lugar de elegir una organización arbitrariamente.
@@ -40,12 +40,11 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 - Secciones de campañas, analítica, ingresos y configuración marcadas como pendientes; no simulan datos reales.
 
 ## Pendientes antes de beta
-- Verificación/recuperación de correo y política de sesiones.
-- Recuperación/verificación de correo y política de sesiones.
+- Verificación/recuperación de correo y política de sesiones. El alta actual crea cuentas antes de verificar el correo; la respuesta uniforme mitiga enumeración, pero no evita la reserva de direcciones ajenas. No habilitar registros públicos reales hasta implementar confirmación de correo.
 - Solicitudes completas de acceso, exportación y eliminación de datos personales.
 - Lockfile npm reproducible.
 - Tests de sesión y autorización por rol, además del smoke test de aislamiento multi-tenant, rechazo de referencias cruzadas y cascadas.
-- Rate limiting, recuperación/verificación de correo y auditoría de seguridad.
+- Auditoría de seguridad y pruebas E2E de sesión/autorización.
 - QA funcional/visual autenticado y configuración de variables de entorno en Preview.
 
 ## Privacidad y seguridad
