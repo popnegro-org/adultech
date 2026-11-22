@@ -17,6 +17,7 @@ assert.deepEqual(registrationCreated, registrationDuplicate);
 assert.equal(registrationCreated.status, 202);
 assert.equal(isRegistrationEnabled('development'), true);
 assert.equal(isRegistrationEnabled('production'), false);
+assert.equal(isRegistrationEnabled(undefined), false);
 const suffix = randomUUID();
 let orgA;
 let orgB;
