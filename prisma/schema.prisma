@@ -25,6 +25,8 @@ model Organization {
   contacts   Contact[]
   campaigns  Campaign[]
   auditLogs  AuditLog[]
+  contactTags ContactTag[]
+  consentRecords ConsentRecord[]
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
 }
@@ -52,6 +54,8 @@ model Contact {
   updatedAt      DateTime            @updatedAt
   organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   interactions   ContactInteraction[]
+  tags           ContactTagAssignment[]
+  consentRecords ConsentRecord[]
 
   @@index([organizationId, createdAt])
   @@index([organizationId, category])
@@ -66,6 +70,44 @@ model ContactInteraction {
   contact    Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
 
   @@index([contactId, occurredAt])
+}
+
+
+model ContactTag {
+  id             String                 @id @default(cuid())
+  organizationId String
+  name           String                 @db.VarChar(40)
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contacts       ContactTagAssignment[]
+  createdAt      DateTime               @default(now())
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model ContactTagAssignment {
+  id        String     @id @default(cuid())
+  contactId String
+  tagId     String
+  createdAt DateTime   @default(now())
+  contact   Contact    @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  tag       ContactTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  @@unique([contactId, tagId])
+  @@index([tagId])
+}
+
+model ConsentRecord {
+  id             String         @id @default(cuid())
+  organizationId String
+  contactId      String
+  purpose        ConsentPurpose
+  status         ConsentStatus  @default(PENDING)
+  source         String?        @db.VarChar(120)
+  capturedAt     DateTime       @default(now())
+  withdrawnAt    DateTime?
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contact        Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  @@index([organizationId, status])
+  @@index([contactId, capturedAt])
 }
 
 model Campaign {
@@ -117,4 +159,14 @@ enum CampaignStatus {
   ACTIVE
   COMPLETED
   ARCHIVED
+}
+enum ConsentPurpose {
+  MARKETING
+  COMMUNICATIONS
+}
+
+enum ConsentStatus {
+  PENDING
+  GRANTED
+  WITHDRAWN
 }
