@@ -18,7 +18,7 @@ Next.js App Router + TypeScript, PostgreSQL + Prisma, Auth.js, bcryptjs, Zod y C
 ## Desarrollo local
 ```bash
 cp .env.example .env
-npm install
+npm ci
 npm run db:generate
 npm run db:validate
 npm run typecheck
