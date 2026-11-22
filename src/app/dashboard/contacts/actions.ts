@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { canWriteContacts } from '@/lib/contact-permissions.mjs';
 import { requireCurrentOrganization } from '@/lib/tenant';
 
 const category = z.enum(['LEAD', 'CLIENT', 'RECURRING_CLIENT', 'COLLABORATOR', 'AGENCY', 'BUSINESS', 'BLOCKED']);
