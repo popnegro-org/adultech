@@ -1,0 +1,3 @@
+import Link from 'next/link';
+const items=[['Overview','/dashboard'],['Contactos','/dashboard/contacts'],['Campañas','#'],['Analítica','#'],['Ingresos','#'],['Configuración','#']];
+export default function DashboardLayout({children}:{children:React.ReactNode}) { return <div className="shell"><aside className="sidebar"><Link href="/" className="brand"><b className="brand-mark">I</b><div>IvanaCain<small>Adult Creator CRM</small></div></Link><nav className="nav">{items.map(([label,href])=><Link key={label} href={href}>{label}</Link>)}</nav><div className="workspace">Workspace demo<span>Perfil independiente · LATAM</span></div></aside><main className="main">{children}</main></div>; }
