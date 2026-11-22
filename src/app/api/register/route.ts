@@ -3,6 +3,7 @@ import { hash } from 'bcryptjs';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { consumeRateLimit } from '@/lib/rate-limit.mjs';
 
 export const runtime = 'nodejs';
 
@@ -14,6 +15,19 @@ const registrationSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const ip = (request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown').slice(0, 64);
+  try {
+    const allowed = await consumeRateLimit(prisma, `register:${ip}`, 5, 15 * 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Demasiados intentos. Volvé a probar en 15 minutos.' },
+        { status: 429, headers: { 'Retry-After': '900' } },
+      );
+    }
+  } catch {
+    return NextResponse.json({ error: 'Servicio temporalmente no disponible.' }, { status: 503 });
+  }
+
   const payload: unknown = await request.json().catch(() => null);
   const parsed = registrationSchema.safeParse(payload);
 
