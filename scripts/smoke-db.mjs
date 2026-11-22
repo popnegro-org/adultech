@@ -14,10 +14,10 @@ let orgA;
 let orgB;
 let user;
 const rateLimitKey = `qa-rate-${suffix}`;
+const staleRateLimitKey = `qa-expired-${suffix}`;
 
 try {
   const rateLimitNow = new Date();
-  const staleRateLimitKey = `qa-expired-${suffix}`;
   await prisma.rateLimitBucket.create({
     data: {
       key: staleRateLimitKey,
