@@ -12,6 +12,10 @@ const contactInput = z.object({
   notes: z.string().trim().max(2000).optional(),
 });
 
+function assertContactWriteAccess(role: string) {
+  if (!['OWNER', 'ADMIN', 'MANAGER'].includes(role)) throw new Error('FORBIDDEN');
+}
+
 async function assertContactInWorkspace(contactId: string, organizationId: string) {
   const contact = await prisma.contact.findFirst({ where: { id: contactId, organizationId }, select: { id: true } });
   if (!contact) throw new Error('CONTACT_NOT_FOUND');
@@ -20,7 +24,8 @@ async function assertContactInWorkspace(contactId: string, organizationId: strin
 export async function createContact(formData: FormData) {
   const parsed = contactInput.safeParse({ displayName: formData.get('displayName'), category: formData.get('category'), notes: formData.get('notes') || undefined });
   if (!parsed.success) throw new Error('Datos de contacto inválidos.');
-  const { organizationId, userId } = await requireCurrentOrganization();
+  const { organizationId, userId, role } = await requireCurrentOrganization();
+  assertContactWriteAccess(role);
   await prisma.$transaction(async (tx) => {
     const contact = await tx.contact.create({ data: { organizationId, ...parsed.data }, select: { id: true } });
     await tx.auditLog.create({ data: { organizationId, actorUserId: userId, action: 'contact.created', resourceType: 'Contact', resourceId: contact.id } });
@@ -32,7 +37,8 @@ export async function updateContact(formData: FormData) {
   const id = z.string().cuid().parse(formData.get('id'));
   const parsed = contactInput.safeParse({ displayName: formData.get('displayName'), category: formData.get('category'), notes: formData.get('notes') || undefined });
   if (!parsed.success) throw new Error('Datos de contacto inválidos.');
-  const { organizationId, userId } = await requireCurrentOrganization();
+  const { organizationId, userId, role } = await requireCurrentOrganization();
+  assertContactWriteAccess(role);
   await assertContactInWorkspace(id, organizationId);
   await prisma.$transaction([
     prisma.contact.update({ where: { id }, data: parsed.data }),
@@ -43,7 +49,8 @@ export async function updateContact(formData: FormData) {
 
 export async function deleteContact(formData: FormData) {
   const id = z.string().cuid().parse(formData.get('id'));
-  const { organizationId, userId } = await requireCurrentOrganization();
+  const { organizationId, userId, role } = await requireCurrentOrganization();
+  assertContactWriteAccess(role);
   await assertContactInWorkspace(id, organizationId);
   await prisma.$transaction(async (tx) => {
     await tx.auditLog.create({ data: { organizationId, actorUserId: userId, action: 'contact.deleted', resourceType: 'Contact', resourceId: id } });
@@ -56,7 +63,8 @@ export async function addInteraction(formData: FormData) {
   const contactId = z.string().cuid().parse(formData.get('contactId'));
   const parsed = z.object({ kind: z.enum(['NOTE', 'MESSAGE', 'FOLLOW_UP', 'OTHER']), summary: z.string().trim().min(2).max(500) }).safeParse({ kind: formData.get('kind'), summary: formData.get('summary') });
   if (!parsed.success) throw new Error('Interacción inválida.');
-  const { organizationId, userId } = await requireCurrentOrganization();
+  const { organizationId, userId, role } = await requireCurrentOrganization();
+  assertContactWriteAccess(role);
   await assertContactInWorkspace(contactId, organizationId);
   await prisma.$transaction(async (tx) => {
     await tx.contactInteraction.create({ data: { contactId, ...parsed.data } });
@@ -68,7 +76,8 @@ export async function addInteraction(formData: FormData) {
 export async function addContactTag(formData: FormData) {
   const contactId = z.string().cuid().parse(formData.get('contactId'));
   const name = z.string().trim().min(2).max(40).parse(formData.get('name'));
-  const { organizationId, userId } = await requireCurrentOrganization();
+  const { organizationId, userId, role } = await requireCurrentOrganization();
+  assertContactWriteAccess(role);
   await assertContactInWorkspace(contactId, organizationId);
   await prisma.$transaction(async (tx) => {
     const tag = await tx.contactTag.upsert({ where: { organizationId_name: { organizationId, name } }, create: { organizationId, name }, update: {}, select: { id: true } });
@@ -84,7 +93,8 @@ export async function recordConsent(formData: FormData) {
     purpose: formData.get('purpose'), status: formData.get('status'), source: formData.get('source') || undefined,
   });
   if (!parsed.success) throw new Error('Registro de consentimiento inválido.');
-  const { organizationId, userId } = await requireCurrentOrganization();
+  const { organizationId, userId, role } = await requireCurrentOrganization();
+  assertContactWriteAccess(role);
   await assertContactInWorkspace(contactId, organizationId);
   await prisma.$transaction(async (tx) => {
     await tx.consentRecord.create({ data: { organizationId, contactId, ...parsed.data, withdrawnAt: parsed.data.status === 'WITHDRAWN' ? new Date() : null } });
