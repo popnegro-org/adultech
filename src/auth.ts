@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHmac } from 'node:crypto';
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
@@ -27,8 +27,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const email = parsed.data.email.trim().toLowerCase();
         const ip = (request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown').slice(0, 64);
-        const ipKey = createHash('sha256').update(ip).digest('hex');
-        const emailKey = createHash('sha256').update(email).digest('hex');
+        const rateLimitSecret = process.env.AUTH_SECRET;
+        if (!rateLimitSecret) throw new Error('AUTH_SECRET is required for authentication rate limiting.');
+        const ipKey = createHmac('sha256', rateLimitSecret).update(ip).digest('hex');
+        const emailKey = createHmac('sha256', rateLimitSecret).update(email).digest('hex');
         const [ipAllowed, emailAllowed] = await Promise.all([
           consumeRateLimit(prisma, `login:ip:${ipKey}`, 12, 15 * 60 * 1000),
           consumeRateLimit(prisma, `login:email:${emailKey}`, 8, 15 * 60 * 1000),
