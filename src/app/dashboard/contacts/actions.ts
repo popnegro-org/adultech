@@ -19,7 +19,7 @@ function getOptionalNotes(formData: FormData) {
 }
 
 function assertContactWriteAccess(role: string) {
-  if (!['OWNER', 'ADMIN', 'MANAGER'].includes(role)) throw new Error('FORBIDDEN');
+  if (!canWriteContacts(role)) throw new Error('FORBIDDEN');
 }
 
 async function assertContactInWorkspace(contactId: string, organizationId: string) {
