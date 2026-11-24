@@ -7,6 +7,7 @@ import { registrationAcceptedResponse } from '../src/lib/registration-response.m
 import { isRegistrationEnabled } from '../src/lib/registration-policy.mjs';
 import { DUMMY_PASSWORD_HASH } from '../src/lib/auth-utils.mjs';
 import { compare } from 'bcryptjs';
+import { getClientIp } from '../src/lib/client-ip.mjs';
 
 const prisma = new PrismaClient();
 assert.equal(canWriteContacts('OWNER'), true);
@@ -21,6 +22,11 @@ assert.equal(isRegistrationEnabled('development'), true);
 assert.equal(isRegistrationEnabled('production'), false);
 assert.equal(isRegistrationEnabled(undefined), false);
 assert.equal(await compare('unknown-account-password', DUMMY_PASSWORD_HASH), false);
+assert.equal(getClientIp(new Headers({ 'x-forwarded-for': '203.0.113.10' }), { vercel: true, nodeEnv: 'production' }), 'unknown');
+assert.equal(getClientIp(new Headers({ 'x-vercel-forwarded-for': '203.0.113.10' }), { vercel: true, nodeEnv: 'production' }), '203.0.113.10');
+assert.equal(getClientIp(new Headers({ 'x-vercel-forwarded-for': 'spoofed, 203.0.113.10' }), { vercel: true, nodeEnv: 'production' }), 'unknown');
+assert.equal(getClientIp(new Headers({ 'x-forwarded-for': 'spoofed' }), { vercel: false, nodeEnv: 'production' }), 'unknown');
+assert.equal(getClientIp(new Headers(), { vercel: false, nodeEnv: 'development' }), 'local-development');
 const suffix = randomUUID();
 let orgA;
 let orgB;
