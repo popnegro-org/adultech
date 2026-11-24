@@ -15,3 +15,12 @@ export function getClientIp(headers, options = {}) {
   const value = headers.get('x-vercel-forwarded-for')?.trim();
   return value && isIP(value) ? value : 'unknown';
 }
+
+/**
+ * An unknown client address must never share a global IP rate-limit bucket.
+ * Development's local-development sentinel is intentionally accepted.
+ * @param {string} ip
+ */
+export function hasTrustedClientIp(ip) {
+  return ip !== 'unknown';
+}
