@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { consumeRateLimit } from '@/lib/rate-limit.mjs';
+import { getClientIp } from '@/lib/client-ip.mjs';
 
 export const runtime = 'nodejs';
 
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
   if (!isRegistrationEnabled()) {
     return NextResponse.json({ error: 'El registro público está temporalmente deshabilitado mientras incorporamos la verificación de correo.' }, { status: 503 });
   }
-  const ip = (request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown').slice(0, 64);
+  const ip = getClientIp(request.headers).slice(0, 64);
   const rateLimitSecret = process.env.AUTH_SECRET;
   if (!rateLimitSecret) return NextResponse.json({ error: 'Servicio temporalmente no disponible.' }, { status: 503 });
   const ipKey = createHmac('sha256', rateLimitSecret).update(ip).digest('hex');
