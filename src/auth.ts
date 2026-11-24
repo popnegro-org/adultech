@@ -1,5 +1,5 @@
 import { createHmac } from 'node:crypto';
-import { getClientIp } from '@/lib/client-ip.mjs';
+import { getClientIp, hasTrustedClientIp } from '@/lib/client-ip.mjs';
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
@@ -29,6 +29,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const email = parsed.data.email.trim().toLowerCase();
         const ip = getClientIp(request.headers).slice(0, 64);
+        // Fail closed when the ingress cannot provide a trusted client IP; never share one global bucket.
+        if (!hasTrustedClientIp(ip)) return null;
         const rateLimitSecret = process.env.AUTH_SECRET;
         if (!rateLimitSecret) throw new Error('AUTH_SECRET is required for authentication rate limiting.');
         const ipKey = createHmac('sha256', rateLimitSecret).update(ip).digest('hex');
