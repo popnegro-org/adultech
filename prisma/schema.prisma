@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model RateLimitCleanupState {
+  id        String   @id
+  lastRunAt DateTime
+}
+
+model RateLimitBucket {
+  key        String   @id
+  count      Int      @default(0)
+  windowStart DateTime
+  updatedAt  DateTime @updatedAt
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String?
+  passwordHash String
+  memberships  Membership[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Organization {
+  id         String       @id @default(cuid())
+  name       String
+  slug       String       @unique
+  memberships Membership[]
+  contacts   Contact[]
+  campaigns  Campaign[]
+  auditLogs  AuditLog[]
+  contactTags ContactTag[]
+  consentRecords ConsentRecord[]
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+model Membership {
+  id             String           @id @default(cuid())
+  userId         String
+  organizationId String
+  role           OrganizationRole @default(MEMBER)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime         @default(now())
+
+  @@unique([userId, organizationId])
+  @@index([organizationId, role])
+}
+
+model Contact {
+  id             String              @id @default(cuid())
+  organizationId String
+  displayName    String
+  category       ContactCategory     @default(LEAD)
+  notes          String?             @db.Text
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  interactions   ContactInteraction[]
+  tags           ContactTagAssignment[]
+  consentRecords ConsentRecord[]
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, category])
+  @@unique([id, organizationId])
+}
+
+model ContactInteraction {
+  id         String   @id @default(cuid())
+  contactId  String
+  kind       String
+  summary    String   @db.VarChar(500)
+  occurredAt DateTime @default(now())
+  contact    Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([contactId, occurredAt])
+}
+
+
+model ContactTag {
+  id             String                 @id @default(cuid())
+  organizationId String
+  name           String                 @db.VarChar(40)
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contacts       ContactTagAssignment[]
+  createdAt      DateTime               @default(now())
+  @@unique([organizationId, name])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+}
+
+model ContactTagAssignment {
+  id             String     @id @default(cuid())
+  contactId      String
+  tagId          String
+  organizationId String
+  createdAt      DateTime   @default(now())
+  contact   Contact    @relation(fields: [contactId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  tag       ContactTag @relation(fields: [tagId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  @@unique([contactId, tagId])
+  @@index([tagId])
+}
+
+model ConsentRecord {
+  id             String         @id @default(cuid())
+  organizationId String
+  contactId      String
+  purpose        ConsentPurpose
+  status         ConsentStatus  @default(PENDING)
+  source         String?        @db.VarChar(120)
+  capturedAt     DateTime       @default(now())
+  withdrawnAt    DateTime?
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contact        Contact       @relation(fields: [contactId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  @@index([organizationId, status])
+  @@index([contactId, capturedAt])
+}
+
+model Campaign {
+  id             String         @id @default(cuid())
+  organizationId String
+  name           String
+  status         CampaignStatus @default(DRAFT)
+  scheduledAt    DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  actorUserId    String?
+  action         String
+  resourceType   String
+  resourceId     String?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+}
+
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  MANAGER
+  MEMBER
+}
+
+enum ContactCategory {
+  LEAD
+  CLIENT
+  RECURRING_CLIENT
+  COLLABORATOR
+  AGENCY
+  BUSINESS
+  BLOCKED
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+enum ConsentPurpose {
+  MARKETING
+  COMMUNICATIONS
+}
+
+enum ConsentStatus {
+  PENDING
+  GRANTED
+  WITHDRAWN
+}

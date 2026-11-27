@@ -1,0 +1,3 @@
+export default function AnalyticsPage() {
+  return <><header className="topline"><div><div className="eyebrow">Business intelligence</div><h1>Analítica</h1><p>Indicadores verificables de tu actividad.</p></div></header><section className="card"><h2>Sin métricas conectadas</h2><p>Los clics, conversiones y resultados de campañas se mostrarán cuando se instrumenten enlaces y eventos reales. No se presentan datos demostrativos como resultados de negocio.</p></section></>;
+}

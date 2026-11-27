@@ -1,0 +1,3 @@
+export default function CampaignsPage() {
+  return <><header className="topline"><div><div className="eyebrow">Marketing Hub</div><h1>Campañas</h1><p>Planificación y seguimiento comercial.</p></div></header><section className="card"><h2>En preparación</h2><p>El PMV incorporará campañas, calendario editorial y enlaces UTM. Los envíos automatizados y las integraciones externas permanecerán deshabilitados hasta implementar permisos y controles de cumplimiento.</p></section></>;
+}

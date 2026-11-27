@@ -1,0 +1,88 @@
+import { createHmac, randomUUID } from 'node:crypto';
+import { hash } from 'bcryptjs';
+import { registrationAcceptedResponse } from '@/lib/registration-response.mjs';
+import { isRegistrationEnabled } from '@/lib/registration-policy.mjs';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { consumeRateLimit } from '@/lib/rate-limit.mjs';
+import { getClientIp } from '@/lib/client-ip.mjs';
+
+export const runtime = 'nodejs';
+
+const registrationSchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  email: z.string().trim().email().max(254),
+  password: z.string().min(12).max(72),
+  isAdult: z.literal(true),
+});
+
+export async function POST(request: Request) {
+  if (!isRegistrationEnabled()) {
+    return NextResponse.json({ error: 'El registro público está temporalmente deshabilitado mientras incorporamos la verificación de correo.' }, { status: 503 });
+  }
+  const ip = getClientIp(request.headers).slice(0, 64);
+  const rateLimitSecret = process.env.AUTH_SECRET;
+  if (!rateLimitSecret) return NextResponse.json({ error: 'Servicio temporalmente no disponible.' }, { status: 503 });
+  const ipKey = createHmac('sha256', rateLimitSecret).update(ip).digest('hex');
+  try {
+    const rateLimitPayload = await request.clone().json().catch(() => null);
+    const emailForLimit = typeof rateLimitPayload?.email === 'string'
+      ? rateLimitPayload.email.trim().toLowerCase()
+      : 'invalid';
+    const emailKey = createHmac('sha256', rateLimitSecret).update(emailForLimit).digest('hex');
+    const [ipAllowed, emailAllowed] = await Promise.all([
+      consumeRateLimit(prisma, `register:ip:${ipKey}`, 5, 15 * 60 * 1000),
+      consumeRateLimit(prisma, `register:email:${emailKey}`, 3, 60 * 60 * 1000),
+    ]);
+    if (!ipAllowed || !emailAllowed) {
+      return NextResponse.json(
+        { error: 'Demasiados intentos. Volvé a probar en 15 minutos.' },
+        { status: 429, headers: { 'Retry-After': '900' } },
+      );
+    }
+  } catch {
+    return NextResponse.json({ error: 'Servicio temporalmente no disponible.' }, { status: 503 });
+  }
+
+  const payload: unknown = await request.json().catch(() => null);
+  const parsed = registrationSchema.safeParse(payload);
+
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Revisá los datos. La contraseña debe tener al menos 12 caracteres y debés confirmar que sos mayor de 18 años.' }, { status: 400 });
+  }
+
+  if (new TextEncoder().encode(parsed.data.password).length > 72) {
+    return NextResponse.json({ error: 'La contraseña supera el máximo admitido.' }, { status: 400 });
+  }
+
+  const email = parsed.data.email.toLowerCase();
+  const passwordHash = await hash(parsed.data.password, 12);
+  const slug = `workspace-${randomUUID().slice(0, 8)}`;
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: { email, name: parsed.data.name, passwordHash },
+        select: { id: true },
+      });
+      const organization = await tx.organization.create({
+        data: { name: `Workspace de ${parsed.data.name}`, slug },
+        select: { id: true },
+      });
+      await tx.membership.create({
+        data: { userId: user.id, organizationId: organization.id, role: 'OWNER' },
+      });
+    });
+  } catch (error) {
+    // Unique-constraint conflicts (including an already registered email) are indistinguishable from success.
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {
+      const result = registrationAcceptedResponse();
+      return NextResponse.json(result.body, { status: result.status });
+    }
+    return NextResponse.json({ error: 'Servicio temporalmente no disponible.' }, { status: 503 });
+  }
+
+  const result = registrationAcceptedResponse();
+  return NextResponse.json(result.body, { status: result.status });
+}

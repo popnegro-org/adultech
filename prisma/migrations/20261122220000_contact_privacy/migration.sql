@@ -1,0 +1,16 @@
+CREATE TYPE "ConsentPurpose" AS ENUM ('MARKETING', 'COMMUNICATIONS');
+CREATE TYPE "ConsentStatus" AS ENUM ('PENDING', 'GRANTED', 'WITHDRAWN');
+CREATE TABLE "ContactTag" ("id" TEXT NOT NULL, "organizationId" TEXT NOT NULL, "name" VARCHAR(40) NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "ContactTag_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "ContactTagAssignment" ("id" TEXT NOT NULL, "contactId" TEXT NOT NULL, "tagId" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "ContactTagAssignment_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "ConsentRecord" ("id" TEXT NOT NULL, "organizationId" TEXT NOT NULL, "contactId" TEXT NOT NULL, "purpose" "ConsentPurpose" NOT NULL, "status" "ConsentStatus" NOT NULL DEFAULT 'PENDING', "source" VARCHAR(120), "capturedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "withdrawnAt" TIMESTAMP(3), CONSTRAINT "ConsentRecord_pkey" PRIMARY KEY ("id"));
+CREATE UNIQUE INDEX "ContactTag_organizationId_name_key" ON "ContactTag"("organizationId", "name");
+CREATE INDEX "ContactTag_organizationId_idx" ON "ContactTag"("organizationId");
+CREATE UNIQUE INDEX "ContactTagAssignment_contactId_tagId_key" ON "ContactTagAssignment"("contactId", "tagId");
+CREATE INDEX "ContactTagAssignment_tagId_idx" ON "ContactTagAssignment"("tagId");
+CREATE INDEX "ConsentRecord_organizationId_status_idx" ON "ConsentRecord"("organizationId", "status");
+CREATE INDEX "ConsentRecord_contactId_capturedAt_idx" ON "ConsentRecord"("contactId", "capturedAt");
+ALTER TABLE "ContactTag" ADD CONSTRAINT "ContactTag_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ContactTagAssignment" ADD CONSTRAINT "ContactTagAssignment_contactId_fkey" FOREIGN KEY ("contactId") REFERENCES "Contact"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ContactTagAssignment" ADD CONSTRAINT "ContactTagAssignment_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "ContactTag"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ConsentRecord" ADD CONSTRAINT "ConsentRecord_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ConsentRecord" ADD CONSTRAINT "ConsentRecord_contactId_fkey" FOREIGN KEY ("contactId") REFERENCES "Contact"("id") ON DELETE CASCADE ON UPDATE CASCADE;
