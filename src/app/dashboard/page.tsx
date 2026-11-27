@@ -17,10 +17,33 @@ export default async function Dashboard() {
 
   return (
     <>
-      <header className="topline"><div><div className="eyebrow">Workspace / Overview</div><h1>{organization.name}</h1><p>Una vista clara de tu actividad comercial.</p></div><div className="avatar" aria-hidden="true">IC</div></header>
-      <section className="grid">{metrics.map(([label, value, note]) => <article className="card" key={label}><div className="muted">{label}</div><div className="metric">{value}</div><small>{note}</small></article>)}</section>
-      <section className="section"><div className="section-head"><h2>Próximos pasos</h2><Link className="button secondary" href="/dashboard/contacts">Administrar contactos</Link></div>
-        <div className="card activity"><p>Tu CRM consulta datos persistidos y limitados a tu organización.</p><p>El módulo de campañas todavía no habilita envíos ni automatizaciones.</p><p>Las métricas e ingresos se mostrarán cuando sus módulos estén implementados.</p></div>
+      <header className="topline">
+        <div>
+          <div className="eyebrow">Workspace / Overview</div>
+          <h1>{organization.name}</h1>
+          <p>Una vista clara de tu actividad comercial.</p>
+        </div>
+        <div className="avatar" aria-hidden="true">A</div>
+      </header>
+      <section className="grid">
+        {metrics.map(([label, value, note]) => (
+          <article className="card" key={label}>
+            <div className="muted">{label}</div>
+            <div className="metric">{value}</div>
+            <small>{note}</small>
+          </article>
+        ))}
+      </section>
+      <section className="section">
+        <div className="section-head">
+          <h2>Próximos pasos</h2>
+          <Link className="button secondary" href="/dashboard/contacts">Administrar contactos</Link>
+        </div>
+        <div className="card activity">
+          <p>Tu CRM consulta datos persistidos y limitados a tu organización.</p>
+          <p>El módulo de campañas todavía no habilita envíos ni automatizaciones.</p>
+          <p>Las métricas e ingresos se mostrarán cuando sus módulos estén implementados.</p>
+        </div>
       </section>
     </>
   );
