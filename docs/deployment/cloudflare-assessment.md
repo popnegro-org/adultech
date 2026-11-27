@@ -15,7 +15,7 @@ Do not create a second application or replace the existing candidate branch.
 - Product package metadata is now named `adultech`; the visible landing, login, dashboard and metadata use the Adultech brand.
 - Next.js 15.5.29, React 19.1.1, Auth.js 5.0.0-beta.32.
 - Prisma 6.19.3, PostgreSQL datasource, no driver adapter configured.
-- `wrangler.jsonc` and `open-next.config.mjs` are committed. The Worker name is `adultech-preview`, with `nodejs_compat`, assets binding, `CLOUDFLARE_WORKERS=1`, logs and traces enabled.
+- `wrangler.jsonc` and `open-next.config.ts` are committed. The Worker name is `adultech-preview`, with `nodejs_compat` and `nodejs_compat_populate_process_env`, assets binding, `CLOUDFLARE_WORKERS=1`, logs and traces enabled. `workers_dev` is false to avoid an accidental public workers.dev endpoint; no route or custom domain is configured.
 - `package.json` includes pinned `cf:install`, `cf:build`, `cf:preview` and `cf:typegen` scripts. OpenNext 1.20.18 and Wrangler 4.165.0 are installed temporarily with `--no-save --package-lock=false`; they are not yet committed as lockfile dependencies.
 - Auth.js Credentials uses `node:crypto`, bcryptjs, JWT sessions and a PostgreSQL-backed rate limiter.
 - The trusted client-IP helper supports Vercel's `x-vercel-forwarded-for` and Cloudflare's `cf-connecting-ip` when `CLOUDFLARE_WORKERS=1`; it fails closed on other production ingress.
@@ -79,7 +79,7 @@ Do not reuse another project's database or credentials.
 
 ## Trusted client IP
 
-Cloudflare support is implemented in `src/lib/client-ip.mjs`:
+The Worker enables `nodejs_compat_populate_process_env`, so the configured `CLOUDFLARE_WORKERS=1` variable is available through the existing `process.env`-based helper. Cloudflare documents this compatibility behavior for Workers with Node.js compatibility enabled. Cloudflare support is implemented in `src/lib/client-ip.mjs`:
 
 - Vercel continues to trust only the validated `x-vercel-forwarded-for` header.
 - Cloudflare mode is explicitly enabled with the Worker environment variable `CLOUDFLARE_WORKERS=1` and trusts only a single valid `cf-connecting-ip` address.
@@ -109,7 +109,7 @@ This repository is currently a CRM and explicitly does not host explicit content
 
 - [ ] Choose and prove an authentication-compatible deployment path (vinext after auth compatibility is solved, or OpenNext as a temporary path).
 - [x] Add the OpenNext/Workers configuration and CI build job to the candidate branch.
-- [x] Set `CLOUDFLARE_WORKERS=1` in the candidate Worker configuration (not deployed yet).
+- [x] Set `CLOUDFLARE_WORKERS=1` and explicit `process.env` population in the candidate Worker configuration (not deployed yet).
 - [ ] Move OpenNext and Wrangler from temporary no-save installation into pinned devDependencies and regenerate `package-lock.json`.
 - [ ] Configure a dedicated Hyperdrive binding and Prisma driver adapter using an approved non-production database connection.
 - [ ] Run the full CI suite including the new `cloudflare-build` job; inspect the first execution and fix any build/runtime bundling failures.
