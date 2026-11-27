@@ -1,4 +1,4 @@
-# IvanaCain — Adult Creator CRM
+# Adultech — Adult Creator CRM
 
 SaaS B2C/B2B para creadores adultos independientes de Argentina y Latinoamérica, con expansión posterior a agencias.
 
@@ -10,10 +10,10 @@ SaaS B2C/B2B para creadores adultos independientes de Argentina y Latinoamérica
 - **P1 Revenue Tracker:** registro manual de ingresos y gastos externos.
 - **P2 Agency Manager:** equipos y gestión de múltiples perfiles.
 
-IvanaCain no aloja ni distribuye contenido explícito y no procesa pagos por contenido adulto. Los ingresos de plataformas externas se registran de forma informativa. La facturación SaaS requiere aprobación expresa del proveedor de pagos para este vertical.
+Adultech no aloja ni distribuye contenido explícito y no procesa pagos por contenido adulto. Los ingresos de plataformas externas se registran de forma informativa. La facturación SaaS requiere aprobación expresa del proveedor de pagos para este vertical.
 
 ## Stack
-Next.js App Router + TypeScript, PostgreSQL + Prisma, Auth.js, bcryptjs, Zod y CSS responsive. Despliegue previsto en Vercel.
+Next.js App Router + TypeScript, PostgreSQL + Prisma, Auth.js, bcryptjs, Zod y CSS responsive. Cloudflare Workers está en evaluación como destino de hosting; el Preview actual continúa en Vercel hasta completar la validación de compatibilidad y runtime.
 
 ## Desarrollo local
 ```bash
@@ -30,7 +30,7 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 ## Estado de implementación
 - Landing pública y dashboard autenticado.
 - Registro local con contraseña hasheada mediante bcryptjs y confirmación de mayoría de edad. En entornos alojados (NODE_ENV=production) el alta pública permanece deshabilitada hasta implementar verificación de correo. La API de desarrollo devuelve HTTP 202 y el mismo cuerpo ante creación y conflicto de email único; aplica rate limiting persistente por IP y email con claves HMAC-SHA256; en Vercel toma la IP exclusivamente de x-vercel-forwarded-for (inyectada por la plataforma), nunca del x-forwarded-for controlable por el cliente. El flujo no inicia sesión automáticamente después del alta.
-- Auth.js Credentials con sesión JWT cifrada en cookie HttpOnly; los intentos con emails inexistentes realizan una comparación bcrypt de costo equivalente para reducir enumeración por tiempo. El login falla de forma cerrada si no hay IP confiable: evita que todas las personas compartan el bucket global `unknown`; Vercel usa exclusivamente la IP inyectada por su edge y otros hosts de producción requieren integrar una fuente de proxy confiable.
+- Auth.js Credentials con sesión JWT cifrada en cookie HttpOnly; los intentos con emails inexistentes realizan una comparación bcrypt de costo equivalente para reducir enumeración por tiempo. El login aplica rate limiting persistente por IP confiable; no utiliza un bucket global por email que permita bloquear remotamente la cuenta de otra persona. El login falla de forma cerrada si no hay IP confiable. Vercel usa exclusivamente la IP inyectada por su edge; Cloudflare y otros hosts requieren configurar y probar su fuente de IP confiable antes de habilitar autenticación alojada.
 - Creación transaccional de workspace y membresía OWNER.
 - Resolución de organización desde la sesión autenticada; no acepta organizationId ni userId controlados por el navegador. El PMV rechaza sesiones con múltiples membresías hasta implementar un selector explícito de workspace, en lugar de elegir una organización arbitrariamente.
 - Escrituras del Creator CRM restringidas en servidor a OWNER, ADMIN y MANAGER; MEMBER queda sin permisos de mutación.
@@ -46,6 +46,7 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 - Tests de sesión y autorización por rol, además del smoke test de aislamiento multi-tenant, rechazo de referencias cruzadas y cascadas.
 - Auditoría de seguridad y pruebas E2E de sesión/autorización. CI incluye smoke HTTP de la página de login y del endpoint de registro alojado.
 - QA funcional/visual autenticado y configuración de variables de entorno en Preview.
+- Compatibilidad Cloudflare Workers: resolver el soporte de Auth.js, configurar Prisma/Hyperdrive y probar la IP confiable Cloudflare antes de migrar hosting.
 
 ## Privacidad y seguridad
 Toda consulta de negocio debe acotarse por organizationId obtenido de la membresía del usuario autenticado en servidor. No confiar en IDs enviados por el cliente. No almacenar contenido explícito, contraseñas de plataformas externas ni información íntima innecesaria de contactos. Aplicar mínimo privilegio, auditoría y portabilidad/eliminación por workspace.
