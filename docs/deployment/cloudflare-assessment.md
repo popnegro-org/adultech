@@ -40,7 +40,7 @@ On the candidate branch, in an isolated ephemeral workspace:
 | `npx vinext check` | 92% compatible; one blocking library issue |
 | `npx opennextjs-cloudflare build` (previous isolated run) | Passed |
 | OpenNext local preview (previous isolated run) | Landing and login returned HTTP 200; dashboard redirected to login. Auth provider endpoint returned HTTP 500 in the first preview because runtime secrets were absent. A second preview could not be completed after the ephemeral runner reached its monthly compute quota. |
-| New CI job `cloudflare-build` | Added to `.github/workflows/ci.yml`; latest run is queued/pending and has not yet produced job results. It runs the OpenNext build and `wrangler deploy --dry-run`, without Cloudflare credentials or deployment. |
+| GitHub Actions CI #112 for commit `1f577b4400a392673355b8f6012440250e1ca002` | Passed. Both `quality` and `cloudflare-build` completed successfully; the latter installed pinned OpenNext/Wrangler tools, built the Worker bundle and ran `wrangler deploy --dry-run` without Cloudflare credentials or deployment. |
 
 The local checks used placeholder database configuration. No live database connection, migration, authenticated session, or write operation was tested.
 
@@ -63,7 +63,7 @@ The successful bundle is not proof of runtime compatibility. Auth.js, database a
 
 ## Database requirements
 
-The existing database is **Prisma Postgres**, database `ivanacain`, currently reported READY in the Prisma workspace. It is not a Neon database. No migrations have been applied to that live database, and the previous approval for read-only SQL inspection expired without a query being run.
+The existing database is **Prisma Postgres**, database `ivanacain`, currently reported READY in the Prisma workspace. It is not a Neon database. A read-only workspace inventory currently shows no separate Adultech test database: the `adultech-cloudflare-preview` branch exists but has no database attached. No migrations or test writes have been applied to `ivanacain`. Do not treat a Preview-scoped connection variable as proof of database isolation; before runtime testing, confirm a dedicated non-production database/branch and its connection target.
 
 The Cloudflare account currently has no Hyperdrive configuration for Adultech. The application currently instantiates Prisma without a driver adapter.
 
@@ -111,8 +111,8 @@ This repository is currently a CRM and explicitly does not host explicit content
 - [x] Add the OpenNext/Workers configuration and CI build job to the candidate branch.
 - [x] Set `CLOUDFLARE_WORKERS=1` and explicit `process.env` population in the candidate Worker configuration (not deployed yet).
 - [ ] Move OpenNext and Wrangler from temporary no-save installation into pinned devDependencies and regenerate `package-lock.json`.
-- [ ] Configure a dedicated Hyperdrive binding and Prisma driver adapter using an approved non-production database connection.
-- [ ] Run the full CI suite including the new `cloudflare-build` job; inspect the first execution and fix any build/runtime bundling failures.
+- [ ] Provision or identify a dedicated non-production PostgreSQL database/branch (the current Prisma preview branch is empty), then configure Hyperdrive and the Prisma driver adapter using only that isolated connection.
+- [x] Run the full CI suite including `cloudflare-build`; CI #112 passed both quality and Worker bundle dry-run jobs.
 - [ ] Run Cloudflare local runtime preview with non-production secrets and a dedicated database.
 - [ ] Verify login, logout, session expiry, registration policy, rate limiting and trusted-IP spoof resistance on Workers.
 - [ ] Run PostgreSQL migration, smoke tests and multi-tenant isolation tests against the dedicated non-production database.
