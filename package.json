@@ -1,5 +1,5 @@
 {
-  "name": "ivana-cain",
+  "name": "adultech",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -43,5 +43,6 @@
     "deepmerge-ts@^7": "^8.0.2",
     "postcss": "^8.5.23",
     "effect": "^3.22.1"
-  }
+  },
+  "description": "Adultech Creator CRM — privacy-first workspace for adult creators"
 }
