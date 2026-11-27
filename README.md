@@ -38,7 +38,7 @@ npm run cf:build
 npm run cf:preview
 ```
 
-`wrangler.jsonc` define el Worker `adultech-preview`, `nodejs_compat`, assets y observabilidad. `CLOUDFLARE_WORKERS=1` activa la lectura de `CF-Connecting-IP`. El build CI solo valida el bundle y ejecuta `wrangler deploy --dry-run`; no despliega a Cloudflare ni necesita tokens. Para autenticación y datos reales falta una conexión PostgreSQL no productiva y secretos locales en `.dev.vars` (nunca versionarlos).
+`wrangler.jsonc` define el Worker `adultech-preview`, `nodejs_compat`, assets y observabilidad. `CLOUDFLARE_WORKERS=1` activa la lectura de `CF-Connecting-IP`. El build CI solo valida el bundle y ejecuta `wrangler deploy --dry-run`; no despliega a Cloudflare ni necesita tokens. Para preparar el entorno local: `cp .dev.vars.example .dev.vars` y reemplazá los valores por credenciales de una base PostgreSQL no productiva y un `AUTH_SECRET` aleatorio. `.dev.vars` está excluido de Git. No uses la base de producción.
 
 ## Estado de implementación
 - Landing pública y dashboard autenticado.
