@@ -26,6 +26,11 @@ assert.equal(getClientIp(new Headers({ 'x-forwarded-for': '203.0.113.10' }), { v
 assert.equal(getClientIp(new Headers({ 'x-vercel-forwarded-for': '203.0.113.10' }), { vercel: true, nodeEnv: 'production' }), '203.0.113.10');
 assert.equal(getClientIp(new Headers({ 'x-vercel-forwarded-for': 'spoofed, 203.0.113.10' }), { vercel: true, nodeEnv: 'production' }), 'unknown');
 assert.equal(getClientIp(new Headers({ 'x-forwarded-for': 'spoofed' }), { vercel: false, nodeEnv: 'production' }), 'unknown');
+assert.equal(getClientIp(new Headers({ 'cf-connecting-ip': '203.0.113.11' }), { cloudflare: true, nodeEnv: 'production' }), '203.0.113.11');
+assert.equal(getClientIp(new Headers({ 'cf-connecting-ip': '2001:db8::11' }), { cloudflare: true, nodeEnv: 'production' }), '2001:db8::11');
+assert.equal(getClientIp(new Headers({ 'cf-connecting-ip': 'spoofed, 203.0.113.11' }), { cloudflare: true, nodeEnv: 'production' }), 'unknown');
+assert.equal(getClientIp(new Headers({ 'x-forwarded-for': 'spoofed' }), { cloudflare: true, nodeEnv: 'production' }), 'unknown');
+assert.equal(getClientIp(new Headers(), { vercel: false, cloudflare: false, nodeEnv: 'production' }), 'unknown');
 assert.equal(getClientIp(new Headers(), { vercel: false, nodeEnv: 'development' }), 'local-development');
 assert.equal(hasTrustedClientIp('unknown'), false);
 assert.equal(hasTrustedClientIp('203.0.113.10'), true);
