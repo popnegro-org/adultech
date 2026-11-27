@@ -3,9 +3,12 @@
   "name": "adultech-preview",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-11-26",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat",
+    "nodejs_compat_populate_process_env"
+  ],
   "upload_source_maps": true,
-  "workers_dev": true,
+  "workers_dev": false,
   "vars": {
     "CLOUDFLARE_WORKERS": "1"
   },
