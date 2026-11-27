@@ -6,14 +6,17 @@ Candidate branch: `feat/ivana-cain-pmv-foundation`
 
 ## Decision
 
-Cloudflare Workers is a viable target for the existing Next.js application, but the migration is **not ready for production**. Keep the current Vercel deployment unchanged until the Cloudflare candidate passes authenticated, database-backed functional tests.
+Cloudflare Workers is a viable target for the existing Next.js application. An OpenNext/Workers candidate configuration and CI build job are now committed, but the migration is **not ready for runtime or production**. Keep the current Vercel Preview unchanged until the Cloudflare candidate passes authenticated, database-backed functional tests.
 
 Do not create a second application or replace the existing candidate branch.
 
 ## Repository baseline
 
+- Product package metadata is now named `adultech`; the visible landing, login, dashboard and metadata use the Adultech brand.
 - Next.js 15.5.29, React 19.1.1, Auth.js 5.0.0-beta.32.
 - Prisma 6.19.3, PostgreSQL datasource, no driver adapter configured.
+- `wrangler.jsonc` and `open-next.config.mjs` are committed. The Worker name is `adultech-preview`, with `nodejs_compat`, assets binding, `CLOUDFLARE_WORKERS=1`, logs and traces enabled.
+- `package.json` includes pinned `cf:install`, `cf:build`, `cf:preview` and `cf:typegen` scripts. OpenNext 1.20.18 and Wrangler 4.165.0 are installed temporarily with `--no-save --package-lock=false`; they are not yet committed as lockfile dependencies.
 - Auth.js Credentials uses `node:crypto`, bcryptjs, JWT sessions and a PostgreSQL-backed rate limiter.
 - The trusted client-IP helper supports Vercel's `x-vercel-forwarded-for` and Cloudflare's `cf-connecting-ip` when `CLOUDFLARE_WORKERS=1`; it fails closed on other production ingress.
 - The application currently describes itself as a Creator CRM. It does not host or distribute explicit content and does not process payments for adult content.
@@ -35,8 +38,9 @@ On the candidate branch, in an isolated ephemeral workspace:
 | GitHub Actions CI #92 for commit `20f72e5c7d8a96bc3760ad0aedc020f58fcfe7e7` | Passed, including the Cloudflare IP parsing tests |
 | Vercel commit status for commit `20f72e5c7d8a96bc3760ad0aedc020f58fcfe7e7` | Success |
 | `npx vinext check` | 92% compatible; one blocking library issue |
-| `npx opennextjs-cloudflare build` | Passed |
-| OpenNext local preview | Landing and login returned HTTP 200; dashboard redirected to login. Auth provider endpoint returned HTTP 500 in the first preview because runtime secrets were absent. A second preview could not be completed after the ephemeral runner reached its monthly compute quota. |
+| `npx opennextjs-cloudflare build` (previous isolated run) | Passed |
+| OpenNext local preview (previous isolated run) | Landing and login returned HTTP 200; dashboard redirected to login. Auth provider endpoint returned HTTP 500 in the first preview because runtime secrets were absent. A second preview could not be completed after the ephemeral runner reached its monthly compute quota. |
+| New CI job `cloudflare-build` | Added to `.github/workflows/ci.yml`; latest run is queued/pending and has not yet produced job results. It runs the OpenNext build and `wrangler deploy --dry-run`, without Cloudflare credentials or deployment. |
 
 The local checks used placeholder database configuration. No live database connection, migration, authenticated session, or write operation was tested.
 
@@ -104,10 +108,12 @@ This repository is currently a CRM and explicitly does not host explicit content
 ## Remaining acceptance criteria
 
 - [ ] Choose and prove an authentication-compatible deployment path (vinext after auth compatibility is solved, or OpenNext as a temporary path).
-- [ ] Add the OpenNext/Workers configuration and lockfile dependencies to the repository.
-- [ ] Set `CLOUDFLARE_WORKERS=1` in the dedicated Workers environment.
+- [x] Add the OpenNext/Workers configuration and CI build job to the candidate branch.
+- [x] Set `CLOUDFLARE_WORKERS=1` in the candidate Worker configuration (not deployed yet).
+- [ ] Move OpenNext and Wrangler from temporary no-save installation into pinned devDependencies and regenerate `package-lock.json`.
 - [ ] Configure a dedicated Hyperdrive binding and Prisma driver adapter using an approved non-production database connection.
-- [ ] Run the full CI suite and Cloudflare runtime preview.
+- [ ] Run the full CI suite including the new `cloudflare-build` job; inspect the first execution and fix any build/runtime bundling failures.
+- [ ] Run Cloudflare local runtime preview with non-production secrets and a dedicated database.
 - [ ] Verify login, logout, session expiry, registration policy, rate limiting and trusted-IP spoof resistance on Workers.
 - [ ] Run PostgreSQL migration, smoke tests and multi-tenant isolation tests against the dedicated non-production database.
 - [ ] Complete visual and functional QA.
