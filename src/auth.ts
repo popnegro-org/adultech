@@ -34,12 +34,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const rateLimitSecret = process.env.AUTH_SECRET;
         if (!rateLimitSecret) throw new Error('AUTH_SECRET is required for authentication rate limiting.');
         const ipKey = createHmac('sha256', rateLimitSecret).update(ip).digest('hex');
-        const emailKey = createHmac('sha256', rateLimitSecret).update(email).digest('hex');
-        const [ipAllowed, emailAllowed] = await Promise.all([
-          consumeRateLimit(prisma, `login:ip:${ipKey}`, 12, 15 * 60 * 1000),
-          consumeRateLimit(prisma, `login:email:${emailKey}`, 8, 15 * 60 * 1000),
-        ]);
-        if (!ipAllowed || !emailAllowed) return null;
+        // Throttle by trusted source IP only. A global email bucket lets anyone remotely lock out a victim.
+        const ipAllowed = await consumeRateLimit(prisma, `login:ip:${ipKey}`, 12, 15 * 60 * 1000);
+        if (!ipAllowed) return null;
 
         const user = await prisma.user.findUnique({ where: { email } });
         // Always perform one cost-12 bcrypt comparison to reduce account-enumeration timing differences.
