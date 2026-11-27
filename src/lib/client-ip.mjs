@@ -1,19 +1,28 @@
 import { isIP } from 'node:net';
 
 /**
- * Use only the client address injected by Vercel's trusted edge.
- * Never trust a caller-provided X-Forwarded-For value on generic ingress.
+ * Read a client IP only from the active, explicitly trusted ingress.
+ * Never trust a caller-provided X-Forwarded-For value.
  * @param {{ get(name: string): string | null }} headers
- * @param {{ vercel?: boolean, nodeEnv?: string }} options
+ * @param {{ vercel?: boolean, cloudflare?: boolean, nodeEnv?: string }} options
  */
 export function getClientIp(headers, options = {}) {
-  const vercel = options.vercel ?? process.env.VERCEL === '1';
   const nodeEnv = options.nodeEnv ?? process.env.NODE_ENV;
+  const cloudflare = options.cloudflare ?? process.env.CLOUDFLARE_WORKERS === '1';
+  const vercel = options.vercel ?? process.env.VERCEL === '1';
 
-  if (!vercel) return nodeEnv === 'development' ? 'local-development' : 'unknown';
+  // Workers must be reached through Cloudflare's edge; CF-Connecting-IP is the single-value edge header.
+  if (cloudflare) {
+    const value = headers.get('cf-connecting-ip')?.trim();
+    return value && isIP(value) ? value : 'unknown';
+  }
 
-  const value = headers.get('x-vercel-forwarded-for')?.trim();
-  return value && isIP(value) ? value : 'unknown';
+  if (vercel) {
+    const value = headers.get('x-vercel-forwarded-for')?.trim();
+    return value && isIP(value) ? value : 'unknown';
+  }
+
+  return nodeEnv === 'development' ? 'local-development' : 'unknown';
 }
 
 /**
