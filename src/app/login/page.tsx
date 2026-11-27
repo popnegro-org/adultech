@@ -11,8 +11,8 @@ export default async function LoginPage() {
   return (
     <main className="auth-page">
       <Link href="/" className="brand">
-        <b className="brand-mark">I</b>
-        <div>IvanaCain<small>Adult Creator CRM</small></div>
+        <b className="brand-mark">A</b>
+        <div>Adultech<small>Adult Creator CRM</small></div>
       </Link>
       <section className="auth-card">
         <div className="eyebrow">Tu negocio. Tu audiencia. Tu control.</div>
