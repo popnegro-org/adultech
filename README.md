@@ -13,7 +13,7 @@ SaaS B2C/B2B para creadores adultos independientes de Argentina y Latinoamérica
 Adultech no aloja ni distribuye contenido explícito y no procesa pagos por contenido adulto. Los ingresos de plataformas externas se registran de forma informativa. La facturación SaaS requiere aprobación expresa del proveedor de pagos para este vertical.
 
 ## Stack
-Next.js App Router + TypeScript, PostgreSQL + Prisma, Auth.js, bcryptjs, Zod y CSS responsive. Cloudflare Workers está en evaluación como destino de hosting; el Preview actual continúa en Vercel hasta completar la validación de compatibilidad y runtime.
+Next.js App Router + TypeScript, PostgreSQL + Prisma, Auth.js, bcryptjs, Zod y CSS responsive. OpenNext + Cloudflare Workers está configurado como candidato de Preview; Vercel Preview permanece intacto mientras se valida el runtime de Workers.
 
 ## Desarrollo local
 ```bash
@@ -26,6 +26,19 @@ npm run lint
 npm run build
 ```
 Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx auth secret`. No guardar secretos reales en el repositorio. Las migraciones de producción requieren revisión y aprobación humana.
+
+### Preview Cloudflare (sin despliegue remoto)
+
+El adaptador OpenNext y Wrangler están fijados temporalmente en `npm run cf:install` (no modifican `package-lock.json`):
+
+```bash
+npm ci
+npm run cf:install
+npm run cf:build
+npm run cf:preview
+```
+
+`wrangler.jsonc` define el Worker `adultech-preview`, `nodejs_compat`, assets y observabilidad. `CLOUDFLARE_WORKERS=1` activa la lectura de `CF-Connecting-IP`. El build CI solo valida el bundle y ejecuta `wrangler deploy --dry-run`; no despliega a Cloudflare ni necesita tokens. Para autenticación y datos reales falta una conexión PostgreSQL no productiva y secretos locales en `.dev.vars` (nunca versionarlos).
 
 ## Estado de implementación
 - Landing pública y dashboard autenticado.
@@ -46,7 +59,7 @@ Configurar DATABASE_URL con PostgreSQL propio y generar AUTH_SECRET con `npx aut
 - Tests de sesión y autorización por rol, además del smoke test de aislamiento multi-tenant, rechazo de referencias cruzadas y cascadas.
 - Auditoría de seguridad y pruebas E2E de sesión/autorización. CI incluye smoke HTTP de la página de login y del endpoint de registro alojado.
 - QA funcional/visual autenticado y configuración de variables de entorno en Preview.
-- Compatibilidad Cloudflare Workers: resolver el soporte de Auth.js, configurar Prisma/Hyperdrive y probar la IP confiable Cloudflare antes de migrar hosting.
+- Cloudflare Workers: ejecutar y aprobar el nuevo job CI de OpenNext; probar Auth.js y Prisma con una base no productiva, configurar Hyperdrive/driver adapter y validar la IP confiable antes de migrar hosting.
 
 ## Privacidad y seguridad
 Toda consulta de negocio debe acotarse por organizationId obtenido de la membresía del usuario autenticado en servidor. No confiar en IDs enviados por el cliente. No almacenar contenido explícito, contraseñas de plataformas externas ni información íntima innecesaria de contactos. Aplicar mínimo privilegio, auditoría y portabilidad/eliminación por workspace.
