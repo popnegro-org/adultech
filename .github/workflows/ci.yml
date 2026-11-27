@@ -18,16 +18,16 @@ jobs:
         env:
           POSTGRES_USER: ci
           POSTGRES_PASSWORD: ci
-          POSTGRES_DB: ivana_cain
+          POSTGRES_DB: adultech_ci
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U ci -d ivana_cain"
+          --health-cmd "pg_isready -U ci -d adultech_ci"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/ivana_cain?schema=public
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/adultech_ci?schema=public
       AUTH_SECRET: ci-only-secret-that-is-long-enough-for-authjs-validation
       AUTH_URL: http://localhost:3000
     steps:
@@ -47,3 +47,23 @@ jobs:
       - run: npm run build
       - name: Test hosted signup gate
         run: bash scripts/smoke-hosted-auth.sh
+
+  cloudflare-build:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/adultech_ci?schema=public
+      AUTH_SECRET: ci-only-secret-that-is-long-enough-for-authjs-validation
+      AUTH_URL: http://localhost:3000
+      CLOUDFLARE_WORKERS: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - name: Install pinned Cloudflare build tools without changing the application lockfile
+        run: npm run cf:install
+      - name: Build Next.js for Cloudflare Workers
+        run: npm run cf:build
+      - name: Validate the generated Worker bundle
+        run: npx wrangler deploy --dry-run
